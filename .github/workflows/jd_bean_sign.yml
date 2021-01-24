@@ -1,16 +1,25 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
 name: jd_bean_sign
+
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 16 * * *'
+  watch:
+    types: started
+  repository_dispatch:
+    types: bean_sgin
 jobs:
   build:
+
     runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          repository: zdrka/jd_scripts_mirror
+        run: |
+          git clone -b master https://github.com/lxk0301/jd_scripts.git ~/jd_scripts
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
@@ -24,9 +33,11 @@ jobs:
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('package-lock.json') }} # 使用 package-lock.json 的 Hash 作为缓存的 key。也可以使用 package.json 代替
       - name: npm install
         run: |
+          cd ~/jd_scripts
           npm install
       - name: '运行 【京豆签到脚本】'
         run: |
+          cd ~/jd_scripts
           node jd_bean_sign.js
         env:
           JD_COOKIE: ${{ secrets.JD_COOKIE }}
@@ -42,3 +53,7 @@ jobs:
           DD_BOT_TOKEN: ${{ secrets.DD_BOT_TOKEN }}
           DD_BOT_SECRET: ${{ secrets.DD_BOT_SECRET }}
           IGOT_PUSH_KEY: ${{ secrets.IGOT_PUSH_KEY }}
+          QQ_SKEY: ${{ secrets.QQ_SKEY }}
+          QQ_MODE: ${{ secrets.QQ_MODE }}
+          PUSH_PLUS_TOKEN: ${{ secrets.PUSH_PLUS_TOKEN }}
+          PUSH_PLUS_USER: ${{ secrets.PUSH_PLUS_USER }}
